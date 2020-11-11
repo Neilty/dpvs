@@ -26,6 +26,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <linux/spinlock.h>
 #include "list.h"
 #include "conf/common.h"
 #include "timer.h"
@@ -67,6 +68,7 @@
 
 struct timer_scheduler {
     /* wheels and cursors */
+    spinlock_t          slock;
     rte_spinlock_t      lock;
     uint32_t            cursors[LEVEL_DEPTH];
     struct list_head    *hashs[LEVEL_DEPTH];
@@ -84,14 +86,16 @@ static struct timer_scheduler g_timer_sched;
 static inline void timer_sched_lock(struct timer_scheduler *sched)
 {
     if (unlikely(sched == &g_timer_sched))
-        rte_spinlock_lock(&sched->lock);
+        spin_lock(&sched->slock);
+        // rte_spinlock_lock(&sched->lock);
     return;
 }
 
 static inline void timer_sched_unlock(struct timer_scheduler *sched)
 {
     if (unlikely(sched == &g_timer_sched))
-        rte_spinlock_unlock(&sched->lock);
+        spin_lock(&sched->slock);
+        // rte_spinlock_unlock(&sched->lock);
     return;
 }
 
@@ -342,8 +346,8 @@ static void rte_timer_tick_cb(struct rte_timer *tim, void *arg)
 static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
 {
     int i, l;
-
-    rte_spinlock_init(&sched->lock);
+    spin_lock_init(&sched->slock);
+    // rte_spinlock_init(&sched->lock);
 
 
     timer_sched_lock(sched);
