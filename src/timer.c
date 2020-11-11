@@ -69,7 +69,7 @@
 struct timer_scheduler {
     /* wheels and cursors */
     spinlock_t          slock;
-    rte_spinlock_t      lock;
+    // rte_spinlock_t      lock;
     uint32_t            cursors[LEVEL_DEPTH];
     struct list_head    *hashs[LEVEL_DEPTH];
 
@@ -147,26 +147,13 @@ static int __dpvs_timer_sched(struct timer_scheduler *sched,
 
     assert(timer);
 
-#ifdef CONFIG_TIMER_DEBUG
-    /* just for debug */
-    if (unlikely((uint64_t)handler > 0x7ffffffffULL)) {
-        char trace[8192];
-        dpvs_backtrace(trace, sizeof(trace));
-        RTE_LOG(WARNING, DTIMER, "[%02d]: timer %p new handler possibly invalid: %p -> %p\n%s",
-                rte_lcore_id(), timer, timer->handler, handler, trace);
-    }
-    if (unlikely(timer->handler && timer->handler != handler)) {
-        char trace[8192];
-        dpvs_backtrace(trace, sizeof(trace));
-        RTE_LOG(WARNING, DTIMER, "[%02d]: timer %p handler possibly changed maliciously: %p ->%p\n%s",
-                rte_lcore_id(), timer, timer->handler, handler, trace);
-    }
-#endif
+
 
     assert(delay && handler);
 
     if (timer_pending(timer))
-        RTE_LOG(WARNING, DTIMER, "schedule a pending timer ?\n");
+        // RTE_LOG(WARNING, DTIMER, "schedule a pending timer ?\n");
+        printf("schedule a pending timer? \n");
 
     timer->handler = handler;
     timer->priv = arg;
@@ -174,7 +161,8 @@ static int __dpvs_timer_sched(struct timer_scheduler *sched,
     timer->delay = timeval_to_ticks(delay);
 
     if (unlikely(timer->delay >= TIMER_MAX_TICKS)) {
-        RTE_LOG(WARNING, DTIMER, "exceed timer range\n");
+        // RTE_LOG(WARNING, DTIMER, "exceed timer range\n");
+        printf("exceed timer range\n");
         return EDPVS_INVAL;
     }
 
@@ -183,7 +171,8 @@ static int __dpvs_timer_sched(struct timer_scheduler *sched,
      * and it will never stopped (periodic) or never triggered (one-shut).
      */
     if (unlikely(!timer->delay)) {
-        RTE_LOG(WARNING, DTIMER, "schedule 0 timeout timer.\n");
+        // RTE_LOG(WARNING, DTIMER, "schedule 0 timeout timer.\n");
+        printf("schedule 0 timeout timer.\n");
         return EDPVS_INVAL;
     }
 
@@ -201,7 +190,8 @@ static int __dpvs_timer_sched(struct timer_scheduler *sched,
     }
 
     /* not adopted by any wheel (never happend) */
-    RTE_LOG(WARNING, DTIMER, "unexpected error\n");
+    // RTE_LOG(WARNING, DTIMER, "unexpected error\n");
+    printf("unexpected error");
     return EDPVS_INVAL;
 }
 
@@ -251,7 +241,8 @@ static void timer_expire(struct timer_scheduler *sched, struct dpvs_timer *timer
     err = __dpvs_timer_sched(sched, timer, &delay, timer->handler,
                              timer->priv, timer->is_period);
     if (err != EDPVS_OK)
-        RTE_LOG(ERR, DTIMER, "%s: fail to re-schedule\n", __func__);
+        // RTE_LOG(ERR, DTIMER, "%s: fail to re-schedule\n", __func__);
+        printf("fail to re-schedule.\n");
 }
 
 #ifdef CONFIG_TIMER_MEASURE
@@ -357,7 +348,8 @@ static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
         sched->hashs[l] = rte_malloc(NULL,
                                      sizeof(struct list_head) * LEVEL_SIZE, 0);
         if (!sched->hashs[l]) {
-            RTE_LOG(ERR, DTIMER, "[%02d] no memory.\n", cid);
+            // RTE_LOG(ERR, DTIMER, "[%02d] no memory.\n", cid);
+            printf(" %d no memory\n", cid);
             timer_sched_unlock(sched);
             return EDPVS_NOMEM;
         }
@@ -371,11 +363,13 @@ static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
     /* ticks should be exactly same with precision */
     if (rte_timer_reset(&sched->rte_tim, g_cycles_per_sec / DPVS_TIMER_HZ,
                         PERIODICAL, cid, rte_timer_tick_cb, sched) != 0) {
-        RTE_LOG(ERR, DTIMER, "[%02d] fail to reset rte timer.\n", cid);
+        // RTE_LOG(ERR, DTIMER, "[%02d] fail to reset rte timer.\n", cid);
+        printf(" %d fail to reset timer.\n", cid);
         return EDPVS_INVAL;
     }
 
-    RTE_LOG(DEBUG, DTIMER, "[%02d] timer initialized %p.\n", cid, sched);
+    // RTE_LOG(DEBUG, DTIMER, "[%02d] timer initialized %p.\n", cid, sched);
+    printf("%d timer initialized.\n", cid);
     return EDPVS_OK;
 }
 
