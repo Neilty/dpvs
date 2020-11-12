@@ -317,7 +317,7 @@ static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
     spin_lock_init(&sched->slock);
     // rte_spinlock_init(&sched->lock);
 
-
+    //init wheel's list set cursor to zero and malloc memory space for list
     timer_sched_lock(sched);
     for (l = 0; l < LEVEL_DEPTH; l++) {
         sched->cursors[l] = 0;
@@ -368,7 +368,7 @@ static int timer_term_schedler(struct timer_scheduler *sched)
                 list_del(&timer->list);
         }
 
-        rte_free(sched->hashs[l]);
+        free(sched->hashs[l]);
         sched->cursors[l] = 0;
     }
 
