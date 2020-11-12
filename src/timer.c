@@ -69,7 +69,7 @@
 struct timer_scheduler {
     /* wheels and cursors */
     spinlock_t          slock;
-    // rte_spinlock_t      lock;
+    
     uint32_t            cursors[LEVEL_DEPTH];
     struct list_head    *hashs[LEVEL_DEPTH];
 
@@ -206,6 +206,9 @@ static void __time_now(struct timer_scheduler *sched, struct timeval *now)
     ticks_to_timeval(ticks, now);
 }
 
+/**
+ * timer expired, trigger callback and delete from the wheel
+*/
 static void timer_expire(struct timer_scheduler *sched, struct dpvs_timer *timer)
 {
     dpvs_timer_cb_t handler;
@@ -307,6 +310,7 @@ static void rte_timer_tick_cb(struct rte_timer *tim, void *arg)
     return;
 }
 
+/***/
 static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
 {
     int i, l;
@@ -317,9 +321,10 @@ static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
     timer_sched_lock(sched);
     for (l = 0; l < LEVEL_DEPTH; l++) {
         sched->cursors[l] = 0;
-
-        sched->hashs[l] = rte_malloc(NULL,
-                                     sizeof(struct list_head) * LEVEL_SIZE, 0);
+        
+        sched->hashs[l] = (struct list_head *)malloc(sizeof(struct list_head) * LEVEL_SIZE);
+        // sched->hashs[l] = rte_malloc(NULL,
+        //                              sizeof(struct list_head) * LEVEL_SIZE, 0);
         if (!sched->hashs[l]) {
             // RTE_LOG(ERR, DTIMER, "[%02d] no memory.\n", cid);
             printf(" %d no memory\n", cid);
