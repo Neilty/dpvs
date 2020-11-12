@@ -323,6 +323,7 @@ static int timer_init_schedler(struct timer_scheduler *sched, lcoreid_t cid)
         sched->cursors[l] = 0;
         
         sched->hashs[l] = (struct list_head *)malloc(sizeof(struct list_head) * LEVEL_SIZE);
+        memset(sched->hashs[l], 0, sizeof(struct list_head) * LEVEL_SIZE);
         // sched->hashs[l] = rte_malloc(NULL,
         //                              sizeof(struct list_head) * LEVEL_SIZE, 0);
         if (!sched->hashs[l]) {
