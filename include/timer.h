@@ -29,6 +29,40 @@ enum {
     DTIMER_OK = 0,
     DTIMER_STOP,
 };
+enum {
+    EDPVS_OK            = 0,
+    EDPVS_INVAL         = -1,       /* invalid parameter */
+    EDPVS_NOMEM         = -2,       /* no memory */
+    EDPVS_EXIST         = -3,       /* already exist */
+    EDPVS_NOTEXIST      = -4,       /* not exist */
+    EDPVS_INVPKT        = -5,       /* invalid packet */
+    EDPVS_DROP          = -6,       /* packet dropped */
+    EDPVS_NOPROT        = -7,       /* no protocol */
+    EDPVS_NOROUTE       = -8,       /* no route */
+    EDPVS_DEFRAG        = -9,       /* defragment error */
+    EDPVS_FRAG          = -10,      /* fragment error */
+    EDPVS_DPDKAPIFAIL   = -11,      /* DPDK error */
+    EDPVS_IDLE          = -12,      /* nothing to do */
+    EDPVS_BUSY          = -13,      /* resource busy */
+    EDPVS_NOTSUPP       = -14,      /* not support */
+    EDPVS_RESOURCE      = -15,      /* no resource */
+    EDPVS_OVERLOAD      = -16,      /* overloaded */
+    EDPVS_NOSERV        = -17,      /* no service */
+    EDPVS_DISABLED      = -18,      /* disabled */
+    EDPVS_NOROOM        = -19,      /* no room */
+    EDPVS_NONEALCORE    = -20,      /* non-eal thread lcore */
+    EDPVS_CALLBACKFAIL  = -21,      /* callbacks fail */
+    EDPVS_IO            = -22,      /* I/O error */
+    EDPVS_MSG_FAIL      = -23,      /* msg callback failed */
+    EDPVS_MSG_DROP      = -24,      /* msg callback dropped */
+    EDPVS_PKTSTOLEN     = -25,      /* stolen packet */
+    EDPVS_SYSCALL       = -26,      /* system call failed */
+    EDPVS_NODEV         = -27,      /* no such device */
+
+    /* positive code for non-error */
+    EDPVS_KNICONTINUE   = 1,        /* KNI to continue */
+    EDPVS_INPROGRESS    = 2,        /* in progress */
+};
 
 typedef int (*dpvs_timer_cb_t)(void *arg);
 

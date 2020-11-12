@@ -221,15 +221,6 @@ static void timer_expire(struct timer_scheduler *sched, struct dpvs_timer *timer
     if (timer_pending(timer))
         list_del(&timer->list);
 
-#ifdef CONFIG_TIMER_DEBUG
-    if (unlikely(!handler || (uint64_t)handler > 0x7ffffffffULL)) {
-        char trace[8192];
-        dpvs_backtrace(trace, sizeof(trace));
-        RTE_LOG(WARNING, DTIMER, "[%02d]: invalid timer(%p) handler "
-                "-- handler:%p, priv:%p, trace:\n%s", rte_lcore_id(),
-                timer, timer->handler, timer->priv, trace);
-    }
-#endif
 
     err = handler(priv);
 
@@ -245,24 +236,6 @@ static void timer_expire(struct timer_scheduler *sched, struct dpvs_timer *timer
         printf("fail to re-schedule.\n");
 }
 
-#ifdef CONFIG_TIMER_MEASURE
-static inline void deviation_measure(void)
-{
-    static struct timeval tv_prev[DPVS_MAX_LCORE];
-    static uint32_t count[DPVS_MAX_LCORE];
-    struct timeval tv_now, tv_elapse;
-
-    if (count[rte_lcore_id()]++ % DPVS_TIMER_HZ == 0) {
-        gettimeofday(&tv_now, NULL);
-        timersub(&tv_now, &tv_prev[rte_lcore_id()], &tv_elapse);
-        tv_prev[rte_lcore_id()] = tv_now;
-
-        printf("[%d] %s: round %u elapse %6lu.%06lu\n",
-                rte_lcore_id(), __func__, count[rte_lcore_id()] - 1,
-                tv_elapse.tv_sec, tv_elapse.tv_usec);
-    }
-}
-#endif
 
 /*
  * it takes exactly one tick between invokations,
